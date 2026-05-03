@@ -1,9 +1,63 @@
 # Mill Scheduler Repro
 
-This repro compares:
+## Table of Contents
 
-- `tools/mill-1.1.6`
-- `tools/mill-1.1.5-271-1a2289`
+- [What This Repro Shows](#what-this-repro-shows)
+- [Results](#results)
+- [Logs](#logs)
+- [How To Run](#how-to-run)
+
+## What This Repro Shows
+
+This repro compares Mill `1.1.6` against `1.1.5-271-1a2289`, the dev build from
+the fine-grained concurrency PR.
+
+The task graph has two independent branches:
+
+```text
+aSlowRoot -------- slow --------> aAfterSlow
+                                      \
+                                       runAll
+                                      /
+bFastRoot -------- fast --------> bLongAfterFast
+```
+
+`bFastRoot` finishes immediately, so `bLongAfterFast` should start immediately
+and overlap with `aSlowRoot`.
+
+In `1.1.5-271-1a2289`, `bLongAfterFast` waits about 5 seconds for the unrelated
+slow branch. This happens with normal locking and with `--no-build-lock`.
+
+## Results
+
+| Lock Mode | Mill Version | `bLongAfterFast` Start | Real Time |
+| --- | --- | ---: | ---: |
+| normal | `1.1.6` | `+0.007s` | `9.30s` |
+| normal | `1.1.5-271-1a2289` | `+5.017s` | `14.28s` |
+| `--no-build-lock` | `1.1.6` | `+0.007s` | `9.09s` |
+| `--no-build-lock` | `1.1.5-271-1a2289` | `+5.018s` | `13.99s` |
+
+The important signal is the start time of `bLongAfterFast`:
+
+- `1.1.6`: starts immediately after `bFastRoot`
+- `1.1.5-271-1a2289`: starts only after `aSlowRoot` finishes
+
+## Logs
+
+Sample logs are committed, so this can be inspected without rerunning the repro:
+
+- `logs/normal/mill-1.1.6.log`
+- `logs/normal/mill-1.1.5-271-1a2289.log`
+- `logs/no-build-lock/mill-1.1.6.log`
+- `logs/no-build-lock/mill-1.1.5-271-1a2289.log`
+
+Summarize the committed logs:
+
+```bash
+./summarize-logs.sh
+```
+
+## How To Run
 
 `run-repro.sh` downloads both pinned Mill launchers into `tools/` on demand.
 
@@ -32,47 +86,3 @@ Defaults:
 - `TARGET=runAll`
 - `JOBS=4`
 - lock modes: `normal`, `no-build-lock`
-
-Expected shape:
-
-```text
-aSlowRoot -------- slow --------> aAfterSlow
-                                      \
-                                       runAll
-                                      /
-bFastRoot -------- fast --------> bLongAfterFast
-```
-
-The interesting line is when `bLongAfterFast` starts. If it starts before
-`aSlowRoot` ends, unrelated ready work is overlapping. If it starts only after
-`aAfterSlow` starts, the new lock-phase chain is delaying ready work behind an
-unrelated same-height task.
-
-Summarize the latest logs:
-
-```bash
-./summarize-logs.sh
-```
-
-The `logs/` directory contains committed sample output, so the behavior can be
-inspected without rerunning the repro.
-
-Observed:
-
-```text
-normal / 1.1.6:
-  bLongAfterFast starts at +0.007s
-  real 9.30s
-
-normal / 1.1.5-271-1a2289:
-  bLongAfterFast starts at +5.017s
-  real 14.28s
-
-no-build-lock / 1.1.6:
-  bLongAfterFast starts at +0.007s
-  real 9.09s
-
-no-build-lock / 1.1.5-271-1a2289:
-  bLongAfterFast starts at +5.018s
-  real 13.99s
-```
