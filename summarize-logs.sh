@@ -3,9 +3,9 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-for log in "$ROOT"/logs/*.log; do
+while IFS= read -r log; do
   [ -f "$log" ] || continue
-  echo "== $(basename "$log") =="
+  echo "== ${log#"$ROOT"/logs/} =="
   awk '
     /MARK/ {
       for (i = 1; i <= NF; i++) {
@@ -20,4 +20,4 @@ for log in "$ROOT"/logs/*.log; do
     }
     /^real / { print "real     " $2 "s" }
   ' "$log"
-done
+done < <(find "$ROOT/logs" -type f -name '*.log' | sort)

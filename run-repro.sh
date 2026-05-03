@@ -9,7 +9,6 @@ mkdir -p "$TOOL_DIR"
 
 TARGET="${TARGET:-runAll}"
 JOBS="${JOBS:-4}"
-LOCK_FLAG="${LOCK_FLAG:---no-build-lock}"
 
 ensure_mill() {
   local version="$1"
@@ -28,36 +27,78 @@ ensure_mill() {
 run_one() {
   local label="$1"
   local mill_bin="$2"
-  local log="$LOG_DIR/${label}.log"
+  local lock_mode="$3"
+  local log_dir="$LOG_DIR/$lock_mode"
+  local log="$log_dir/${label}.log"
+  local lock_args=()
+
+  mkdir -p "$log_dir"
+
+  case "$lock_mode" in
+    normal)
+      ;;
+    no-build-lock)
+      lock_args=(--no-build-lock)
+      ;;
+    *)
+      echo "unknown lock mode: $lock_mode" >&2
+      exit 2
+      ;;
+  esac
 
   rm -rf "$ROOT/out"
 
   echo "== $label =="
-  echo "mill: $mill_bin"
+  echo "mill: ./tools/$(basename "$mill_bin")"
   echo "target: $TARGET"
   echo "jobs: $JOBS"
-  echo "lock flag: $LOCK_FLAG"
-  echo "log: $log"
+  echo "lock mode: $lock_mode"
+  echo "log: ./logs/$lock_mode/${label}.log"
 
   (
     cd "$ROOT"
-    /usr/bin/time -p "$mill_bin" "$LOCK_FLAG" --jobs "$JOBS" "$TARGET"
+    /usr/bin/time -p "$mill_bin" "${lock_args[@]}" --jobs "$JOBS" "$TARGET"
   ) 2>&1 | tee "$log"
 }
 
-case "${1:-both}" in
-  1.1.6)
-    run_one "mill-1.1.6" "$(ensure_mill 1.1.6)"
+run_version() {
+  local version="$1"
+  local lock_mode="$2"
+  run_one "mill-$version" "$(ensure_mill "$version")" "$lock_mode"
+}
+
+run_versions() {
+  local version_mode="$1"
+  local lock_mode="$2"
+
+  case "$version_mode" in
+    1.1.6)
+      run_version 1.1.6 "$lock_mode"
+      ;;
+    1.1.5-271-1a2289)
+      run_version 1.1.5-271-1a2289 "$lock_mode"
+      ;;
+    both)
+      run_version 1.1.6 "$lock_mode"
+      run_version 1.1.5-271-1a2289 "$lock_mode"
+      ;;
+    *)
+      echo "usage: $0 [both|1.1.6|1.1.5-271-1a2289] [all|normal|no-build-lock]" >&2
+      exit 2
+      ;;
+  esac
+}
+
+case "${2:-all}" in
+  normal | no-build-lock)
+    run_versions "${1:-both}" "$2"
     ;;
-  1.1.5-271-1a2289)
-    run_one "mill-1.1.5-271-1a2289" "$(ensure_mill 1.1.5-271-1a2289)"
-    ;;
-  both)
-    run_one "mill-1.1.6" "$(ensure_mill 1.1.6)"
-    run_one "mill-1.1.5-271-1a2289" "$(ensure_mill 1.1.5-271-1a2289)"
+  all)
+    run_versions "${1:-both}" normal
+    run_versions "${1:-both}" no-build-lock
     ;;
   *)
-    echo "usage: $0 [both|1.1.6|1.1.5-271-1a2289]" >&2
+    echo "usage: $0 [both|1.1.6|1.1.5-271-1a2289] [all|normal|no-build-lock]" >&2
     exit 2
     ;;
 esac

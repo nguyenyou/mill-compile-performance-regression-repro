@@ -7,24 +7,31 @@ This repro compares:
 
 `run-repro.sh` downloads both pinned Mill launchers into `tools/` on demand.
 
-Run both:
+Run both Mill versions in both lock modes:
 
 ```bash
-./run-repro.sh both
+./run-repro.sh
 ```
 
-Run one:
+Run one Mill version:
 
 ```bash
 ./run-repro.sh 1.1.6
 ./run-repro.sh 1.1.5-271-1a2289
 ```
 
+Run one lock mode:
+
+```bash
+./run-repro.sh both normal
+./run-repro.sh both no-build-lock
+```
+
 Defaults:
 
 - `TARGET=runAll`
 - `JOBS=4`
-- `LOCK_FLAG=--no-build-lock`
+- lock modes: `normal`, `no-build-lock`
 
 Expected shape:
 
@@ -47,17 +54,25 @@ Summarize the latest logs:
 ./summarize-logs.sh
 ```
 
-The `logs/` directory contains committed sample output from a warmed run, so
-the behavior can be inspected without rerunning the repro.
+The `logs/` directory contains committed sample output, so the behavior can be
+inspected without rerunning the repro.
 
-Observed on the initial warmed run:
+Observed:
 
 ```text
-1.1.6:
-  bLongAfterFast starts at +0.015s
-  real 9.18s
+normal / 1.1.6:
+  bLongAfterFast starts at +0.007s
+  real 9.30s
 
-1.1.5-271-1a2289:
-  bLongAfterFast starts at +5.013s
-  real 14.06s
+normal / 1.1.5-271-1a2289:
+  bLongAfterFast starts at +5.017s
+  real 14.28s
+
+no-build-lock / 1.1.6:
+  bLongAfterFast starts at +0.007s
+  real 9.09s
+
+no-build-lock / 1.1.5-271-1a2289:
+  bLongAfterFast starts at +5.018s
+  real 13.99s
 ```
