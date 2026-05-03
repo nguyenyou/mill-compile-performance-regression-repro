@@ -47,6 +47,9 @@ Summarize the latest logs:
 ./summarize-logs.sh
 ```
 
+The `logs/` directory contains committed sample output from a warmed run, so
+the behavior can be inspected without rerunning the repro.
+
 Observed on the initial warmed run:
 
 ```text

@@ -1,0 +1,16 @@
+./tools/mill-1.1.6 runAll
+build.mill-68] compile compiling 1 Scala source to out/mill-build/compile.dest/classes ...
+build.mill-68] done compiling
+1] bFastRoot MARK start bFastRoot 1777806462428
+2] aSlowRoot MARK start aSlowRoot 1777806462428
+1] MARK end bFastRoot 1777806462433
+3] bLongAfterFast MARK start bLongAfterFast 1777806462443
+2] MARK end aSlowRoot 1777806467438
+4] aAfterSlow MARK start aAfterSlow 1777806467443
+3] MARK end bLongAfterFast 1777806467448
+4] MARK end aAfterSlow 1777806467546
+5] runAll RESULT slow-after | fast-long
+5/5, SUCCESS] ./tools/mill-1.1.6 runAll 8s
+real 9.18
+user 0.14
+sys 0.27
