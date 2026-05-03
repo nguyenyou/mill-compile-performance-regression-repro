@@ -1,5 +1,9 @@
 # Mill Scheduler Repro
 
+This demonstrates a compile-time regression in Mill `1.1.5-271-1a2289`: the new
+lock-phase ordering can delay ready independent tasks behind unrelated slow
+branches.
+
 ## Table of Contents
 
 - [What This Repro Shows](#what-this-repro-shows)
