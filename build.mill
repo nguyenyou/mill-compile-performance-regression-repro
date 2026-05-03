@@ -1,0 +1,59 @@
+package build
+
+import mill.*
+
+object `package` extends mill.Module {
+  private def nowMs: Long = System.currentTimeMillis()
+
+  private def log(name: String, phase: String): Unit = {
+    println(s"MARK $phase $name ${nowMs}")
+  }
+
+  private def pause(ms: Long): Unit = Thread.sleep(ms)
+
+  /*
+   * Shape:
+   *
+   *   aSlowRoot --slow--> aAfterSlow --+
+   *                                    +--> runAll
+   *   bFastRoot --fast--> bLongAfterFast
+   *
+   * aAfterSlow and bLongAfterFast have the same graph height. The new PR
+   * lock-phase order sorts them by canonical task key, so bLongAfterFast can
+   * wait for aAfterSlow's lock phase even though its own upstream is ready.
+   */
+
+  def aSlowRoot = Task {
+    log("aSlowRoot", "start")
+    pause(5000)
+    log("aSlowRoot", "end")
+    "slow"
+  }
+
+  def bFastRoot = Task {
+    log("bFastRoot", "start")
+    log("bFastRoot", "end")
+    "fast"
+  }
+
+  def aAfterSlow = Task {
+    val value = aSlowRoot()
+    log("aAfterSlow", "start")
+    pause(100)
+    log("aAfterSlow", "end")
+    value + "-after"
+  }
+
+  def bLongAfterFast = Task {
+    val value = bFastRoot()
+    log("bLongAfterFast", "start")
+    pause(5000)
+    log("bLongAfterFast", "end")
+    value + "-long"
+  }
+
+  def runAll() = Task.Command {
+    val result = Seq(aAfterSlow(), bLongAfterFast()).mkString(" | ")
+    println(s"RESULT $result")
+  }
+}
