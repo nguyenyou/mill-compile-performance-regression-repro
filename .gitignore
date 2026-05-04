@@ -1,2 +1,6 @@
 out/
 tools/
+common/
+chain*/
+side*/
+.compile-lab-sources

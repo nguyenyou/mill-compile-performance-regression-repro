@@ -1,0 +1,16 @@
+/Users/tunguyen/Desktop/DELETEME/mill-scheduler-repro/tools/mill-1.1.5-274-8a195b runAll
+build.mill-68] compile compiling 1 Scala source to out/mill-build/compile.dest/classes ...
+build.mill-68] done compiling
+2] aSlowRoot MARK start aSlowRoot 1777863170970
+1] bFastRoot MARK start bFastRoot 1777863170970
+1] MARK end bFastRoot 1777863170971
+3] bLongAfterFast MARK start bLongAfterFast 1777863170977
+2] MARK end aSlowRoot 1777863175976
+3] MARK end bLongAfterFast 1777863175978
+4] aAfterSlow MARK start aAfterSlow 1777863175979
+4] MARK end aAfterSlow 1777863176085
+5] runAll RESULT slow-after | fast-long
+5/5, SUCCESS] /Users/tunguyen/Desktop/DELETEME/mill-s...pro/tools/mill-1.1.5-274-8a195b runAll 10s
+real 10.88
+user 0.17
+sys 0.22

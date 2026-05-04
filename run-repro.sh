@@ -78,12 +78,16 @@ run_versions() {
     1.1.5-271-1a2289)
       run_version 1.1.5-271-1a2289 "$lock_mode"
       ;;
+    1.1.5-274-8a195b)
+      run_version 1.1.5-274-8a195b "$lock_mode"
+      ;;
     both)
       run_version 1.1.6 "$lock_mode"
       run_version 1.1.5-271-1a2289 "$lock_mode"
+      run_version 1.1.5-274-8a195b "$lock_mode"
       ;;
     *)
-      echo "usage: $0 [both|1.1.6|1.1.5-271-1a2289] [all|normal|no-build-lock]" >&2
+      echo "usage: $0 [both|1.1.6|1.1.5-271-1a2289|1.1.5-274-8a195b] [all|normal|no-build-lock]" >&2
       exit 2
       ;;
   esac

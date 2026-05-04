@@ -20,4 +20,4 @@ while IFS= read -r log; do
     }
     /^real / { print "real     " $2 "s" }
   ' "$log"
-done < <(find "$ROOT/logs" -type f -name '*.log' | sort)
+done < <(find "$ROOT/logs" -type f -name '*.log' ! -path '*/compile-lab/*' | sort)

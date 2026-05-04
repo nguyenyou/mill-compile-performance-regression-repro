@@ -1,6 +1,7 @@
 package build
 
 import mill.*
+import scalalib.*
 
 object `package` extends mill.Module {
   private def nowMs: Long = System.currentTimeMillis()
@@ -55,5 +56,92 @@ object `package` extends mill.Module {
   def runAll() = Task.Command {
     val result = Seq(aAfterSlow(), bLongAfterFast()).mkString(" | ")
     println(s"RESULT $result")
+  }
+
+  trait LabModule extends ScalaModule {
+    def scalaVersion = "3.3.6"
+  }
+
+  object common extends LabModule
+
+  object chain0 extends LabModule {
+    def moduleDeps = Seq(common)
+  }
+
+  object chain1 extends LabModule {
+    def moduleDeps = Seq(chain0)
+  }
+
+  object chain2 extends LabModule {
+    def moduleDeps = Seq(chain1)
+  }
+
+  object chain3 extends LabModule {
+    def moduleDeps = Seq(chain2)
+  }
+
+  object side0 extends LabModule {
+    def moduleDeps = Seq(common)
+  }
+
+  object side1 extends LabModule {
+    def moduleDeps = Seq(common)
+  }
+
+  object side2 extends LabModule {
+    def moduleDeps = Seq(common)
+  }
+
+  object side3 extends LabModule {
+    def moduleDeps = Seq(common)
+  }
+
+  object side4 extends LabModule {
+    def moduleDeps = Seq(common)
+  }
+
+  object side5 extends LabModule {
+    def moduleDeps = Seq(common)
+  }
+
+  object side6 extends LabModule {
+    def moduleDeps = Seq(common)
+  }
+
+  object side7 extends LabModule {
+    def moduleDeps = Seq(common)
+  }
+
+  /*
+   * Compile lab shape:
+   *
+   * common --> chain0 --> chain1 --> chain2 --> chain3
+   *    |
+   *    +----> side0
+   *    +----> side1
+   *    +----> ...
+   *    +----> side7
+   *
+   * The chain is the critical path. The side modules create parallel compiler
+   * pressure. `generate-compile-sources.sh` controls how much source each
+   * module contains.
+   */
+  def compileLab() = Task.Command {
+    val outputs = Seq(
+      common.compile(),
+      chain0.compile(),
+      chain1.compile(),
+      chain2.compile(),
+      chain3.compile(),
+      side0.compile(),
+      side1.compile(),
+      side2.compile(),
+      side3.compile(),
+      side4.compile(),
+      side5.compile(),
+      side6.compile(),
+      side7.compile()
+    )
+    println(s"COMPILE_LAB_DONE ${outputs.size}")
   }
 }
